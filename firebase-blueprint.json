@@ -1,0 +1,229 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "fullName": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 128 },
+        "photoURL": { "type": "string", "maxLength": 100000 },
+        "statusMessage": { "type": "string", "maxLength": 200 },
+        "online": { "type": "boolean" },
+        "lastSeen": { "type": "string", "maxLength": 64 },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "blockedUserIds": { "type": "array" },
+        "chatBackground": { "type": "string", "maxLength": 500000 },
+        "conversationBackgrounds": { "type": "object" },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "fullName", "email"]
+    },
+    "ContactRequest": {
+      "title": "ContactRequest",
+      "description": "Contact connection request between users",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "fromUserId": { "type": "string", "maxLength": 128 },
+        "toUserId": { "type": "string", "maxLength": 128 },
+        "fromUserName": { "type": "string", "maxLength": 100 },
+        "fromUserPhoto": { "type": "string", "maxLength": 100000 },
+        "fromUserEmail": { "type": "string", "maxLength": 128 },
+        "toUserEmail": { "type": "string", "maxLength": 128 },
+        "status": { "type": "string", "enum": ["pending", "accepted", "declined"] },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "fromUserId", "toUserId", "status"]
+    },
+    "Conversation": {
+      "title": "Conversation",
+      "description": "Chat thread between two or more participants",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "type": { "type": "string", "enum": ["direct", "group"] },
+        "name": { "type": "string", "maxLength": 100 },
+        "photoURL": { "type": "string", "maxLength": 100000 },
+        "participantIds": { "type": "array" },
+        "adminIds": { "type": "array" },
+        "updatedAt": { "type": "string", "maxLength": 64 },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "type", "participantIds"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "Chat message item in a conversation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "conversationId": { "type": "string", "maxLength": 128 },
+        "senderId": { "type": "string", "maxLength": 128 },
+        "senderName": { "type": "string", "maxLength": 100 },
+        "senderPhoto": { "type": "string", "maxLength": 100000 },
+        "text": { "type": "string", "maxLength": 10000 },
+        "mediaType": { "type": "string", "enum": ["text", "image", "video", "audio"] },
+        "mediaUrl": { "type": "string", "maxLength": 500000 },
+        "audioDuration": { "type": "number" },
+        "timestamp": { "type": "string", "maxLength": 64 },
+        "readBy": { "type": "array" }
+      },
+      "required": ["id", "conversationId", "senderId", "text", "mediaType"]
+    },
+    "Call": {
+      "title": "Call",
+      "description": "WebRTC audio or video call record and signaling",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "callerId": { "type": "string", "maxLength": 128 },
+        "callerName": { "type": "string", "maxLength": 100 },
+        "callerPhoto": { "type": "string", "maxLength": 100000 },
+        "receiverId": { "type": "string", "maxLength": 128 },
+        "receiverName": { "type": "string", "maxLength": 100 },
+        "receiverPhoto": { "type": "string", "maxLength": 100000 },
+        "type": { "type": "string", "enum": ["audio", "video"] },
+        "status": { "type": "string", "enum": ["calling", "ringing", "connected", "ended", "declined", "missed"] },
+        "startedAt": { "type": "string", "maxLength": 64 },
+        "endedAt": { "type": "string", "maxLength": 64 },
+        "duration": { "type": "number" }
+      },
+      "required": ["id", "callerId", "receiverId", "type", "status"]
+    },
+    "Report": {
+      "title": "Report",
+      "description": "User abuse and content report for administrators",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "reporterId": { "type": "string", "maxLength": 128 },
+        "reporterEmail": { "type": "string", "maxLength": 128 },
+        "reportedUserId": { "type": "string", "maxLength": 128 },
+        "reportedUserName": { "type": "string", "maxLength": 100 },
+        "reason": { "type": "string", "maxLength": 500 },
+        "status": { "type": "string", "enum": ["pending", "resolved", "dismissed"] },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "reporterId", "reportedUserId", "reason", "status"]
+    },
+    "StarredMessage": {
+      "title": "StarredMessage",
+      "description": "Bookmarked chat message saved by user",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "messageId": { "type": "string", "maxLength": 128 },
+        "conversationId": { "type": "string", "maxLength": 128 },
+        "conversationName": { "type": "string", "maxLength": 100 },
+        "senderId": { "type": "string", "maxLength": 128 },
+        "senderName": { "type": "string", "maxLength": 100 },
+        "senderPhoto": { "type": "string", "maxLength": 100000 },
+        "text": { "type": "string", "maxLength": 10000 },
+        "mediaType": { "type": "string", "enum": ["text", "image", "video", "audio"] },
+        "mediaUrl": { "type": "string", "maxLength": 500000 },
+        "timestamp": { "type": "string", "maxLength": 64 },
+        "starredAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "userId", "messageId", "conversationId", "text", "mediaType"]
+    },
+    "ScheduledMessage": {
+      "title": "ScheduledMessage",
+      "description": "Messages scheduled for future delivery",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "conversationId": { "type": "string", "maxLength": 128 },
+        "senderId": { "type": "string", "maxLength": 128 },
+        "senderName": { "type": "string", "maxLength": 100 },
+        "senderPhoto": { "type": "string", "maxLength": 100000 },
+        "text": { "type": "string", "maxLength": 10000 },
+        "mediaType": { "type": "string", "enum": ["text", "image", "video", "audio"] },
+        "mediaUrl": { "type": "string", "maxLength": 500000 },
+        "scheduledFor": { "type": "string", "maxLength": 64 },
+        "status": { "type": "string", "enum": ["pending", "sent", "cancelled"] },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "conversationId", "senderId", "text", "scheduledFor", "status"]
+    },
+    "MessageReaction": {
+      "title": "MessageReaction",
+      "description": "Emoji reactions to individual messages",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "messageId": { "type": "string", "maxLength": 128 },
+        "conversationId": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "userName": { "type": "string", "maxLength": 100 },
+        "userPhoto": { "type": "string", "maxLength": 100000 },
+        "emoji": { "type": "string", "maxLength": 32 },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "messageId", "conversationId", "userId", "emoji"]
+    },
+    "TypingStatus": {
+      "title": "TypingStatus",
+      "description": "Real-time typing indicator for a conversation participant",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "conversationId": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "userName": { "type": "string", "maxLength": 100 },
+        "userPhoto": { "type": "string", "maxLength": 100000 },
+        "isTyping": { "type": "boolean" },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "conversationId", "userId", "isTyping"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile collection"
+    },
+    "/users/{userId}/starredMessages/{starredId}": {
+      "schema": "StarredMessage",
+      "description": "User bookmarked messages subcollection"
+    },
+    "/contactRequests/{requestId}": {
+      "schema": "ContactRequest",
+      "description": "Contact invitation requests"
+    },
+    "/conversations/{conversationId}": {
+      "schema": "Conversation",
+      "description": "Active chat conversations"
+    },
+    "/conversations/{conversationId}/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Messages inside a conversation"
+    },
+    "/conversations/{conversationId}/messages/{messageId}/reactions/{reactionId}": {
+      "schema": "MessageReaction",
+      "description": "Emoji reactions on a message"
+    },
+    "/conversations/{conversationId}/typing/{userId}": {
+      "schema": "TypingStatus",
+      "description": "Real-time typing indicator for a conversation participant"
+    },
+    "/scheduledMessages/{scheduledId}": {
+      "schema": "ScheduledMessage",
+      "description": "Messages scheduled to be sent at a future date and time"
+    },
+    "/calls/{callId}": {
+      "schema": "Call",
+      "description": "Audio and video calls with WebRTC signaling"
+    },
+    "/reports/{reportId}": {
+      "schema": "Report",
+      "description": "User abuse reports for admins"
+    },
+    "/admins/{userId}": {
+      "schema": "UserProfile",
+      "description": "Admin collection for role-based access control"
+    }
+  }
+}

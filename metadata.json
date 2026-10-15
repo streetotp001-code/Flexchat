@@ -1,0 +1,11 @@
+{
+  "name": "FLEXchat",
+  "description": "FLEXchat by CYCM — Chat. Call. Be Closer. Real-time messaging, voice notes, audio and video calling.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

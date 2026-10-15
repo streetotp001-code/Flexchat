@@ -1,0 +1,136 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'streetotp001@gmail.com'
+      );
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId);
+      allow list: if isSignedIn();
+      allow create: if isOwner(userId) && isValidId(userId) &&
+        request.resource.data.id == userId &&
+        request.resource.data.fullName is string &&
+        request.resource.data.fullName.size() <= 100 &&
+        request.resource.data.email is string;
+      allow update: if (isOwner(userId) || isAdmin()) && isValidId(userId);
+      allow delete: if isAdmin();
+
+      // Starred / bookmarked messages for this user
+      match /starredMessages/{starredId} {
+        allow read, write: if (isOwner(userId) || isAdmin()) && isValidId(starredId);
+      }
+    }
+
+    // Contact Requests
+    match /contactRequests/{requestId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(requestId) &&
+        request.resource.data.fromUserId == request.auth.uid;
+      allow update: if isSignedIn() && isValidId(requestId) &&
+        (resource.data.toUserId == request.auth.uid || resource.data.fromUserId == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && isValidId(requestId) &&
+        (resource.data.fromUserId == request.auth.uid || resource.data.toUserId == request.auth.uid || isAdmin());
+    }
+
+    // Conversations
+    match /conversations/{conversationId} {
+      allow get: if isSignedIn() && isValidId(conversationId) &&
+        (request.auth.uid in resource.data.participantIds || isAdmin());
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(conversationId) &&
+        request.auth.uid in request.resource.data.participantIds;
+      allow update: if isSignedIn() && isValidId(conversationId) &&
+        (request.auth.uid in resource.data.participantIds || isAdmin());
+      allow delete: if isSignedIn() && isValidId(conversationId) &&
+        (request.auth.uid in resource.data.participantIds || isAdmin());
+
+      // Messages in conversation
+      match /messages/{messageId} {
+        allow get: if isSignedIn() && isValidId(messageId);
+        allow list: if isSignedIn();
+        allow create: if isSignedIn() && isValidId(messageId) &&
+          request.resource.data.senderId == request.auth.uid;
+        allow update: if isSignedIn() && isValidId(messageId) &&
+          (resource.data.senderId == request.auth.uid || isAdmin() || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readBy']));
+        allow delete: if isSignedIn() && isValidId(messageId) &&
+          (resource.data.senderId == request.auth.uid || isAdmin());
+
+        // Emoji Reactions on a message
+        match /reactions/{reactionId} {
+          allow get, list: if isSignedIn();
+          allow create: if isSignedIn() && isValidId(reactionId) &&
+            request.resource.data.userId == request.auth.uid;
+          allow update, delete: if isSignedIn() && isValidId(reactionId) &&
+            (resource.data.userId == request.auth.uid || isAdmin());
+        }
+      }
+
+      // Typing indicators in conversation
+      match /typing/{userId} {
+        allow get, list: if isSignedIn();
+        allow create, update: if isSignedIn() && isValidId(userId) &&
+          request.auth.uid == userId;
+        allow delete: if isSignedIn() && isValidId(userId) &&
+          (request.auth.uid == userId || isAdmin());
+      }
+    }
+
+    // Scheduled Messages
+    match /scheduledMessages/{scheduledId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(scheduledId) &&
+        request.resource.data.senderId == request.auth.uid;
+      allow update: if isSignedIn() && isValidId(scheduledId) &&
+        (resource.data.senderId == request.auth.uid || isAdmin() || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']));
+      allow delete: if isSignedIn() && isValidId(scheduledId) &&
+        (resource.data.senderId == request.auth.uid || isAdmin());
+    }
+
+    // Calls (WebRTC signaling)
+    match /calls/{callId} {
+      allow get, list: if isSignedIn() && isValidId(callId);
+      allow create: if isSignedIn() && isValidId(callId) &&
+        request.resource.data.callerId == request.auth.uid;
+      allow update: if isSignedIn() && isValidId(callId) &&
+        (resource.data.callerId == request.auth.uid || resource.data.receiverId == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && isValidId(callId) &&
+        (resource.data.callerId == request.auth.uid || resource.data.receiverId == request.auth.uid || isAdmin());
+    }
+
+    // Abuse Reports
+    match /reports/{reportId} {
+      allow create: if isSignedIn() && isValidId(reportId) &&
+        request.resource.data.reporterId == request.auth.uid;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Admins
+    match /admins/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+  }
+}
